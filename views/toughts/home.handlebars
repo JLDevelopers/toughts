@@ -35,15 +35,25 @@
       <a href="/">Limpar</a>
     </div>
   </div>
-  <div class="toughts-container">
+  <!--<div class="toughts-container">
     {{#each toughts}}
       <figure>
         <blockquote>
           "{{this.title}}"
         </blockquote>
-        <figcaption>por <span>{{this.User.name}}</span></figcaption>
+        <figcaption>{{this.updatedAt}} por <span>{{this.User.name}}</span></figcaption>
       </figure>
     {{/each}}
-  </div>
+  </div>-->
+  <ul class="timeline">
+    {{#each toughts}}
+    <li class="timeline-item">
+      <div class="timeline-card">
+        <p>"{{this.title}}"</p>
+        <h4>{{this.updatedAt}} por <b>{{this.User.name}}</b></h4>
+      </div>
+    </li>
+    {{/each}}
+      </ul>
 </body>
 </html>

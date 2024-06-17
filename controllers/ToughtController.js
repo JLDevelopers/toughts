@@ -3,6 +3,8 @@ const ModelFactory = require('../models/modelFactory');
 const Tought = ModelFactory.createModel('Tought');
 const User = ModelFactory.createModel('User');
 const logDecorator = require('../decorators/logDecorator');
+const formatHumanDate = require("../helpers/date").formatHumanDate;
+
 
 class ToughtController {
   static async showToughts(req, res) {
@@ -21,13 +23,20 @@ class ToughtController {
             }
           },
           include: User,
-          order: [['createdAt', order]]
+          order: [['updatedAt', order]]
         });
         toughtsQty = toughts.length;
       } else {
-        toughts = await Tought.findAll({ include: User, order: [['createdAt', order]] });
+        toughts = await Tought.findAll({ include: User, order: [['updatedAt', order]] });
         toughtsQty = toughts.length;
       }
+
+      toughts.forEach((item)=>{
+        item.dataValues.updatedAt = require("../helpers/date").formatHumanDate(item.dataValues.updatedAt)
+      })
+      console.log("toughts")
+      console.log(toughts)
+
       res.render('toughts/home', { toughts, search, toughtsQty });
     } catch (error) {
       console.error(error);
@@ -53,7 +62,6 @@ class ToughtController {
       });
     } catch (error) {
       console.error(error);
-      req.flash('message', 'Erro ao criar pensamento!');
       res.redirect('/toughts/dashboard');
     }
   }
@@ -69,15 +77,14 @@ class ToughtController {
         await Tought.destroy({ where: { id: id } });
         req.logAction('Remove Tought', req, { userId, title: tought.title });
         req.flash('message', 'Pensamento removido com sucesso!');
+        req.session.save(() => {
+          res.redirect('/toughts/dashboard');
+        });
       } else {
-        req.flash('message', 'Erro ao remover pensamento!');
-      }
-      req.session.save(() => {
         res.redirect('/toughts/dashboard');
-      });
+      }
     } catch (error) {
       console.error(error);
-      req.flash('message', 'Erro ao remover pensamento!');
       res.redirect('/toughts/dashboard');
     }
   }
@@ -89,7 +96,6 @@ class ToughtController {
       res.render('toughts/edit', { tought });
     } catch (error) {
       console.error(error);
-      req.flash('message', 'Erro ao carregar pensamento!');
       res.redirect('/toughts/dashboard');
     }
   }
@@ -117,7 +123,6 @@ class ToughtController {
       });
     } catch (error) {
       console.error(error);
-      req.flash('message', 'Erro ao atualizar pensamento!');
       res.redirect('/toughts/dashboard');
     }
   }
@@ -138,10 +143,9 @@ class ToughtController {
       const toughts = user.Toughts.map((result) => result.dataValues);
       const emptyToughts = toughts.length === 0;
 
-      res.render('toughts/dashboard', { toughts, emptyToughts, message: req.flash('message') });
+      res.render('toughts/dashboard', { toughts, emptyToughts });
     } catch (error) {
       console.error(error);
-      req.flash('message', 'Erro ao carregar dashboard!');
       res.redirect('/login');
     }
   }
